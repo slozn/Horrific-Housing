@@ -2,9 +2,18 @@ if not game:IsLoaded() then
    game.Loaded:Wait()
 end
 
+local Players = game:GetService("Players")
+local Lighting = game:GetService("Lighting")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TextChatService = game:GetService("TextChatService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local LocalPlayer = Players.LocalPlayer
+
 local GC = getconnections or get_signal_cons
 if GC then
-    for _, v in pairs(GC(Players.LocalPlayer.Idled)) do
+    for _, v in pairs(GC(LocalPlayer.Idled)) do
         if v["Disable"] then
             v["Disable"](v)
         end
@@ -35,27 +44,28 @@ local Window = Rayfield:CreateWindow({
 })
 
 local SurvivalTab = Window:CreateTab("Survival", 4483362458)
-local VisualsTab = Window:CreateTab("Visuals", 4483362458)
-local ItemsTab = Window:CreateTab("Items", 4483362458)
-local PlayerTab = Window:CreateTab("Player", 4483362458)
-local TrollTab = Window:CreateTab("Troll", 4483362458)
+local VisualsTab  = Window:CreateTab("Visuals",  4483362458)
+local ItemsTab    = Window:CreateTab("Items",    4483362458)
+local PlayerTab   = Window:CreateTab("Player",   4483362458)
+local TrollTab    = Window:CreateTab("Troll",    4483362458)
 
 local safespotActive = false
 local safespotOriginalPos = nil
+
 SurvivalTab:CreateToggle({
    Name = "Safespot",
    CurrentValue = false,
    Flag = "SafespotFlag",
    Callback = function(Value)
       safespotActive = Value
-      local character = game.Players.LocalPlayer.Character
+      local character = LocalPlayer.Character
       if safespotActive then
          if character and character:FindFirstChild("HumanoidRootPart") then
             safespotOriginalPos = character.HumanoidRootPart.CFrame
          end
          task.spawn(function()
             while safespotActive do
-               local char = game.Players.LocalPlayer.Character
+               local char = LocalPlayer.Character
                if char and char:FindFirstChild("HumanoidRootPart") then
                   char.HumanoidRootPart.CFrame = CFrame.new(0, 500, 0)
                   char.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
@@ -75,6 +85,7 @@ SurvivalTab:CreateToggle({
 
 local antiVoidActive = false
 local lastSafePos = nil
+
 SurvivalTab:CreateToggle({
    Name = "Anti Void",
    CurrentValue = false,
@@ -83,7 +94,7 @@ SurvivalTab:CreateToggle({
       antiVoidActive = Value
       task.spawn(function()
          while antiVoidActive do
-            local character = game.Players.LocalPlayer.Character
+            local character = LocalPlayer.Character
             if character and character:FindFirstChild("HumanoidRootPart") then
                local hrp = character.HumanoidRootPart
                if hrp.Position.Y > 0 then
@@ -104,6 +115,7 @@ SurvivalTab:CreateToggle({
 })
 
 local antiDeathBlocksActive = false
+
 SurvivalTab:CreateToggle({
    Name = "Anti Death Blocks",
    CurrentValue = false,
@@ -113,7 +125,7 @@ SurvivalTab:CreateToggle({
       task.spawn(function()
          while antiDeathBlocksActive do
             pcall(function()
-               local character = game.Players.LocalPlayer.Character
+               local character = LocalPlayer.Character
                if character then
                   for _, v in pairs(character:GetDescendants()) do
                      if v:IsA("TouchTransmitter") then
@@ -129,6 +141,7 @@ SurvivalTab:CreateToggle({
 })
 
 local espActive = false
+
 VisualsTab:CreateToggle({
    Name = "ESP",
    CurrentValue = false,
@@ -137,8 +150,8 @@ VisualsTab:CreateToggle({
       espActive = Value
       task.spawn(function()
          while espActive do
-            for _, player in pairs(game:GetService("Players"):GetPlayers()) do
-               if player ~= game.Players.LocalPlayer and player.Character then
+            for _, player in pairs(Players:GetPlayers()) do
+               if player ~= LocalPlayer and player.Character then
                   if not player.Character:FindFirstChild("Highlight") then
                      local hl = Instance.new("Highlight")
                      hl.Parent = player.Character
@@ -160,7 +173,7 @@ VisualsTab:CreateToggle({
             end
             task.wait(0.5)
          end
-         for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+         for _, player in pairs(Players:GetPlayers()) do
             if player.Character and player.Character:FindFirstChild("Highlight") then
                player.Character.Highlight:Destroy()
             end
@@ -170,10 +183,10 @@ VisualsTab:CreateToggle({
 })
 
 local fullbrightActive = false
-local lighting = game:GetService("Lighting")
-local origBrightness = lighting.Brightness
-local origClockTime = lighting.ClockTime
-local origShadows = lighting.GlobalShadows
+local origBrightness = Lighting.Brightness
+local origClockTime = Lighting.ClockTime
+local origShadows = Lighting.GlobalShadows
+
 VisualsTab:CreateToggle({
    Name = "FullBright",
    CurrentValue = false,
@@ -181,27 +194,28 @@ VisualsTab:CreateToggle({
    Callback = function(Value)
       fullbrightActive = Value
       if fullbrightActive then
-         origBrightness = lighting.Brightness
-         origClockTime = lighting.ClockTime
-         origShadows = lighting.GlobalShadows
+         origBrightness = Lighting.Brightness
+         origClockTime = Lighting.ClockTime
+         origShadows = Lighting.GlobalShadows
          task.spawn(function()
             while fullbrightActive do
-               lighting.Brightness = 2
-               lighting.ClockTime = 14
-               lighting.GlobalShadows = false
+               Lighting.Brightness = 2
+               Lighting.ClockTime = 14
+               Lighting.GlobalShadows = false
                task.wait(0.5)
             end
          end)
       else
-         lighting.Brightness = origBrightness
-         lighting.ClockTime = origClockTime
-         lighting.GlobalShadows = origShadows
+         Lighting.Brightness = origBrightness
+         Lighting.ClockTime = origClockTime
+         Lighting.GlobalShadows = origShadows
       end
    end,
 })
 
 local xrayActive = false
 local originalTransparencies = {}
+
 VisualsTab:CreateToggle({
    Name = "Xray",
    CurrentValue = false,
@@ -233,6 +247,7 @@ VisualsTab:CreateToggle({
 })
 
 local autoGrabActive = false
+
 ItemsTab:CreateToggle({
    Name = "Auto Grab Items",
    CurrentValue = false,
@@ -242,14 +257,14 @@ ItemsTab:CreateToggle({
       task.spawn(function()
          while autoGrabActive do
             pcall(function()
-               local character = game.Players.LocalPlayer.Character
+               local character = LocalPlayer.Character
                if character and character:FindFirstChild("HumanoidRootPart") then
                   for _, v in pairs(workspace:GetDescendants()) do
                      if v:IsA("Tool") and v:FindFirstChild("Handle") then
                         local characterModel = v:FindFirstAncestorWhichIsA("Model")
                         local belongsToPlayer = false
                         if characterModel then
-                           for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+                           for _, player in pairs(Players:GetPlayers()) do
                               if player.Character == characterModel then
                                  belongsToPlayer = true
                                  break
@@ -273,7 +288,7 @@ ItemsTab:CreateButton({
    Name = "Use All Items",
    Callback = function()
       pcall(function()
-         local player = game.Players.LocalPlayer
+         local player = LocalPlayer
          local character = player.Character
          local backpack = player.Backpack
          if character and backpack then
@@ -294,6 +309,7 @@ ItemsTab:CreateButton({
 })
 
 local killAuraDistance = 25
+
 ItemsTab:CreateSlider({
    Name = "KillAura Distance",
    Range = {5, 100},
@@ -306,6 +322,7 @@ ItemsTab:CreateSlider({
 })
 
 local killAuraActive = false
+
 ItemsTab:CreateToggle({
    Name = "KillAura (For Close Combat)",
    CurrentValue = false,
@@ -315,13 +332,13 @@ ItemsTab:CreateToggle({
       task.spawn(function()
          while killAuraActive do
             pcall(function()
-               local character = game.Players.LocalPlayer.Character
+               local character = LocalPlayer.Character
                if character then
                   local tool = character:FindFirstChildOfClass("Tool")
                   if tool and character:FindFirstChild("HumanoidRootPart") then
                      local hrp = character.HumanoidRootPart
-                     for _, player in pairs(game:GetService("Players"):GetPlayers()) do
-                        if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                     for _, player in pairs(Players:GetPlayers()) do
+                        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                            local dist = (hrp.Position - player.Character.HumanoidRootPart.Position).Magnitude
                            if dist < killAuraDistance then
                               for _, part in pairs(player.Character:GetDescendants()) do
@@ -343,6 +360,7 @@ ItemsTab:CreateToggle({
 })
 
 local informInvActive = false
+
 ItemsTab:CreateToggle({
    Name = "Inform About Player Inventories",
    CurrentValue = false,
@@ -352,8 +370,8 @@ ItemsTab:CreateToggle({
       task.spawn(function()
          local connections = {}
          if informInvActive then
-            for _, player in pairs(game:GetService("Players"):GetPlayers()) do
-               if player ~= game.Players.LocalPlayer then
+            for _, player in pairs(Players:GetPlayers()) do
+               if player ~= LocalPlayer then
                   local function setupContainer(container)
                      if container then
                         table.insert(connections, container.ChildAdded:Connect(function(item)
@@ -401,6 +419,7 @@ ItemsTab:CreateToggle({
 })
 
 local targetName = ""
+
 PlayerTab:CreateInput({
    Name = "Target Username or DisplayName",
    PlaceholderText = "Enter name here",
@@ -412,9 +431,8 @@ PlayerTab:CreateInput({
 })
 
 local function getTargetCharacter()
-   local localPlayer = game.Players.LocalPlayer
-   for _, player in pairs(game:GetService("Players"):GetPlayers()) do
-      if player ~= localPlayer then
+   for _, player in pairs(Players:GetPlayers()) do
+      if player ~= LocalPlayer then
          if player.Name:lower():sub(1, #targetName) == targetName:lower() or player.DisplayName:lower():sub(1, #targetName) == targetName:lower() then
             if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                return player.Character
@@ -429,8 +447,7 @@ PlayerTab:CreateButton({
    Name = "Fling Target Player",
    Callback = function()
       pcall(function()
-         local localPlayer = game.Players.LocalPlayer
-         local character = localPlayer.Character
+         local character = LocalPlayer.Character
          if not character or not character:FindFirstChild("HumanoidRootPart") then return end
          
          local targetChar = getTargetCharacter()
@@ -450,8 +467,7 @@ PlayerTab:CreateButton({
    Name = "Teleport to Player",
    Callback = function()
       pcall(function()
-         local localPlayer = game.Players.LocalPlayer
-         local character = localPlayer.Character
+         local character = LocalPlayer.Character
          if not character or not character:FindFirstChild("HumanoidRootPart") then return end
          
          local targetChar = getTargetCharacter()
@@ -463,6 +479,7 @@ PlayerTab:CreateButton({
 })
 
 local viewPlayerActive = false
+
 PlayerTab:CreateToggle({
    Name = "View Player",
    CurrentValue = false,
@@ -480,7 +497,7 @@ PlayerTab:CreateToggle({
             task.wait(0.5)
          end
          pcall(function()
-            local character = game.Players.LocalPlayer.Character
+            local character = LocalPlayer.Character
             if character and character:FindFirstChild("Humanoid") then
                workspace.CurrentCamera.CameraSubject = character.Humanoid
             end
@@ -497,7 +514,7 @@ PlayerTab:CreateSlider({
    Flag = "WalkSpeedSlider",
    Callback = function(Value)
       pcall(function()
-         local character = game.Players.LocalPlayer.Character
+         local character = LocalPlayer.Character
          if character and character:FindFirstChild("Humanoid") then
             character.Humanoid.WalkSpeed = Value
          end
@@ -513,7 +530,7 @@ PlayerTab:CreateSlider({
    Flag = "JumpPowerSlider",
    Callback = function(Value)
       pcall(function()
-         local character = game.Players.LocalPlayer.Character
+         local character = LocalPlayer.Character
          if character and character:FindFirstChild("Humanoid") then
             character.Humanoid.UseJumpPower = true
             character.Humanoid.JumpPower = Value
@@ -543,7 +560,7 @@ PlayerTab:CreateSlider({
    Flag = "HipHeightSlider",
    Callback = function(Value)
       pcall(function()
-         local character = game.Players.LocalPlayer.Character
+         local character = LocalPlayer.Character
          if character and character:FindFirstChild("Humanoid") then
             character.Humanoid.HipHeight = Value
          end
@@ -552,10 +569,11 @@ PlayerTab:CreateSlider({
 })
 
 local infJumpActive = false
-game:GetService("UserInputService").JumpRequest:Connect(function()
+
+UserInputService.JumpRequest:Connect(function()
    if infJumpActive then
       pcall(function()
-         local character = game.Players.LocalPlayer.Character
+         local character = LocalPlayer.Character
          if character and character:FindFirstChildOfClass("Humanoid") then
             character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
          end
@@ -573,6 +591,7 @@ PlayerTab:CreateToggle({
 })
 
 local noclipActive = false
+
 PlayerTab:CreateToggle({
    Name = "Noclip",
    CurrentValue = false,
@@ -580,10 +599,9 @@ PlayerTab:CreateToggle({
    Callback = function(Value)
       noclipActive = Value
       task.spawn(function()
-         local runService = game:GetService("RunService")
          while noclipActive do
             pcall(function()
-               local character = game.Players.LocalPlayer.Character
+               local character = LocalPlayer.Character
                if character then
                   for _, part in pairs(character:GetDescendants()) do
                      if part:IsA("BasePart") then
@@ -592,7 +610,7 @@ PlayerTab:CreateToggle({
                   end
                end
             end)
-            runService.Stepped:Wait()
+            RunService.Stepped:Wait()
          end
       end)
    end,
@@ -602,7 +620,7 @@ PlayerTab:CreateButton({
    Name = "Reset Character",
    Callback = function()
       pcall(function()
-         local character = game.Players.LocalPlayer.Character
+         local character = LocalPlayer.Character
          if character and character:FindFirstChild("Humanoid") then
             character.Humanoid.Health = 0
          end
@@ -614,7 +632,7 @@ PlayerTab:CreateButton({
    Name = "Lay",
    Callback = function()
       pcall(function()
-         local character = game.Players.LocalPlayer.Character
+         local character = LocalPlayer.Character
          if character and character:FindFirstChild("Humanoid") then
             character.Humanoid.PlatformStanding = true
          end
@@ -623,6 +641,7 @@ PlayerTab:CreateButton({
 })
 
 local mockPlayersActive = false
+
 TrollTab:CreateToggle({
    Name = "Mock Players",
    CurrentValue = false,
@@ -654,19 +673,18 @@ TrollTab:CreateToggle({
          }
          while mockPlayersActive do
             pcall(function()
-               local players = game:GetService("Players"):GetPlayers()
-               if #players > 1 then
-                  local target = players[math.random(1, #players)]
-                  if target ~= game.Players.LocalPlayer then
+               local playersList = Players:GetPlayers()
+               if #playersList > 1 then
+                  local target = playersList[math.random(1, #playersList)]
+                  if target ~= LocalPlayer then
                      local msg = "@" .. target.Name .. " " .. phrases[math.random(1, #phrases)]
-                     local textChatService = game:GetService("TextChatService")
-                     if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
-                        local channel = textChatService.TextChannels.RBXGeneral
+                     if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+                        local channel = TextChatService.TextChannels.RBXGeneral
                         if channel then
                            channel:SendAsync(msg)
                         end
                      else
-                        game:GetService("ReplicatedStorage"):WaitForChild("DefaultChatSystemChatEvents"):WaitForChild("SayMessageRequest"):FireServer(msg, "All")
+                        ReplicatedStorage:WaitForChild("DefaultChatSystemChatEvents"):WaitForChild("SayMessageRequest"):FireServer(msg, "All")
                      end
                   end
                end
