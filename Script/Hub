@@ -31,7 +31,7 @@ local Window = Rayfield:CreateWindow({
    LoadingTitle = "Horrific Housing Hub",
    LoadingSubtitle = "By semihu55",
    ConfigurationSaving = {
-      Enabled = true,
+      Enabled = false,
       FolderName = "HorrificHousingSemi",
       FileName = "Config"
    },
@@ -251,32 +251,6 @@ ItemsTab:CreateToggle({
                   for _, v in pairs(workspace:GetDescendants()) do
                      if v:IsA("Tool") and v:FindFirstChild("Handle") then
                         v.Handle.CFrame = character.HumanoidRootPart.CFrame
-                     end
-                  end
-               end
-            end)
-            task.wait()
-         end
-      end)
-   end,
-})
-
-local autoSpleefActive = false
-ItemsTab:CreateToggle({
-   Name = "Auto Touch Spleefs",
-   CurrentValue = false,
-   Flag = "SpleefFlag",
-   Callback = function(Value)
-      autoSpleefActive = Value
-      task.spawn(function()
-         while autoSpleefActive do
-            pcall(function()
-               local character = game.Players.LocalPlayer.Character
-               if character and character:FindFirstChild("HumanoidRootPart") then
-                  for _, v in pairs(workspace:GetDescendants()) do
-                     if v:IsA("BasePart") and v.Name:lower():find("spleef") then
-                        firetouchinterest(character.HumanoidRootPart, v, 0)
-                        firetouchinterest(character.HumanoidRootPart, v, 1)
                      end
                   end
                end
