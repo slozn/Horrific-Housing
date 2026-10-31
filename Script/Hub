@@ -250,7 +250,19 @@ ItemsTab:CreateToggle({
                if character and character:FindFirstChild("HumanoidRootPart") then
                   for _, v in pairs(workspace:GetDescendants()) do
                      if v:IsA("Tool") and v:FindFirstChild("Handle") then
-                        v.Handle.CFrame = character.HumanoidRootPart.CFrame
+                        local characterModel = v:FindFirstAncestorWhichIsA("Model")
+                        local belongsToPlayer = false
+                        if characterModel then
+                           for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+                              if player.Character == characterModel then
+                                 belongsToPlayer = true
+                                 break
+                              end
+                           end
+                        end
+                        if not belongsToPlayer then
+                           v.Handle.CFrame = character.HumanoidRootPart.CFrame
+                        end
                      end
                   end
                end
@@ -475,58 +487,6 @@ PlayerTab:CreateToggle({
             local character = game.Players.LocalPlayer.Character
             if character and character:FindFirstChild("Humanoid") then
                workspace.CurrentCamera.CameraSubject = character.Humanoid
-            end
-         end)
-      end)
-   end,
-})
-
-local flyActive = false
-PlayerTab:CreateToggle({
-   Name = "Fly",
-   CurrentValue = false,
-   Flag = "FlyFlag",
-   Callback = function(Value)
-      flyActive = Value
-      task.spawn(function()
-         local runService = game:GetService("RunService")
-         local uis = game:GetService("UserInputService")
-         while flyActive do
-            pcall(function()
-               local character = game.Players.LocalPlayer.Character
-               if character and character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("Humanoid") then
-                  character.Humanoid.PlatformStanding = true
-                  local hrp = character.HumanoidRootPart
-                  local cam = workspace.CurrentCamera
-                  local moveDir = Vector3.new(0, 0, 0)
-                  if uis:IsKeyDown(Enum.KeyCode.W) then
-                     moveDir = moveDir + cam.CFrame.LookVector
-                  end
-                  if uis:IsKeyDown(Enum.KeyCode.S) then
-                     moveDir = moveDir - cam.CFrame.LookVector
-                  end
-                  if uis:IsKeyDown(Enum.KeyCode.A) then
-                     moveDir = moveDir - cam.CFrame.RightVector
-                  end
-                  if uis:IsKeyDown(Enum.KeyCode.D) then
-                     moveDir = moveDir + cam.CFrame.RightVector
-                  end
-                  if moveDir.Magnitude > 0 then
-                     hrp.AssemblyLinearVelocity = moveDir.Unit * 60 + Vector3.new(0, 2, 0)
-                  else
-                     hrp.AssemblyLinearVelocity = Vector3.new(0, 2, 0)
-                  end
-               end
-            end)
-            runService.RenderStepped:Wait()
-         end
-         pcall(function()
-            local character = game.Players.LocalPlayer.Character
-            if character and character:FindFirstChild("Humanoid") then
-               character.Humanoid.PlatformStanding = false
-               if character:FindFirstChild("HumanoidRootPart") then
-                  character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-               end
             end
          end)
       end)
