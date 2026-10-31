@@ -142,24 +142,25 @@ SurvivalTab:CreateToggle({
    end,
 })
 
-local autoGiftActive = false
+local autoCollectGiftsActive = false
 
 SurvivalTab:CreateToggle({
-   Name = "Gift",
+   Name = "Auto Collect Gifts",
    CurrentValue = false,
-   Flag = "GiftFlag",
+   Flag = "AutoCollectGiftsFlag",
    Callback = function(Value)
-      autoGiftActive = Value
+      autoCollectGiftsActive = Value
       task.spawn(function()
-         while autoGiftActive do
+         while autoCollectGiftsActive do
             pcall(function()
                for _, v in pairs(Workspace:GetDescendants()) do
                   if v:IsA("ProximityPrompt") and v.Name == "Gift" then
+                     v.MaxActivationDistance = 9e9
                      if fireproximityprompt then
                         fireproximityprompt(v)
                      else
                         v:InputHoldBegin()
-                        task.wait(0.1)
+                        task.wait(v.HoldDuration > 0 and v.HoldDuration or 0.1)
                         v:InputHoldEnd()
                      end
                   end
@@ -715,7 +716,7 @@ TrollTab:CreateToggle({
                if #playersList > 1 then
                   local target = playersList[math.random(1, #playersList)]
                   if target ~= LocalPlayer then
-                     local msg = "@" + target.Name + " " + phrases[math.random(1, #phrases)]
+                     local msg = "@" .. target.Name .. " " .. phrases[math.random(1, #phrases)]
                      if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
                         local channel = TextChatService.TextChannels.RBXGeneral
                         if channel then
