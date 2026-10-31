@@ -8,6 +8,7 @@ local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local TextChatService = game:GetService("TextChatService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 
 local LocalPlayer = Players.LocalPlayer
 
@@ -75,8 +76,9 @@ SurvivalTab:CreateToggle({
          end)
       else
          task.spawn(function()
-            if safespotOriginalPos and character and character:FindFirstChild("HumanoidRootPart") then
-               character.HumanoidRootPart.CFrame = safespotOriginalPos
+            local char = LocalPlayer.Character
+            if safespotOriginalPos and char and char:FindFirstChild("HumanoidRootPart") then
+               char.HumanoidRootPart.CFrame = safespotOriginalPos
             end
          end)
       end
@@ -140,6 +142,35 @@ SurvivalTab:CreateToggle({
    end,
 })
 
+local autoGiftActive = false
+
+SurvivalTab:CreateToggle({
+   Name = "Gift",
+   CurrentValue = false,
+   Flag = "GiftFlag",
+   Callback = function(Value)
+      autoGiftActive = Value
+      task.spawn(function()
+         while autoGiftActive do
+            pcall(function()
+               for _, v in pairs(Workspace:GetDescendants()) do
+                  if v:IsA("ProximityPrompt") and v.Name == "Gift" then
+                     if fireproximityprompt then
+                        fireproximityprompt(v)
+                     else
+                        v:InputHoldBegin()
+                        task.wait(0.1)
+                        v:InputHoldEnd()
+                     end
+                  end
+               end
+            end)
+            task.wait(0.5)
+         end
+      end)
+   end,
+})
+
 local espActive = false
 
 VisualsTab:CreateToggle({
@@ -163,10 +194,8 @@ VisualsTab:CreateToggle({
                      hl.OutlineColor = Color3.fromRGB(255, 255, 255)
                   else
                      local hl = player.Character:FindFirstChild("Highlight")
-                     if player.Team then
+                     if hl and player.Team then
                         hl.FillColor = player.Team.TeamColor.Color
-                     else
-                        hl.FillColor = Color3.fromRGB(255, 255, 255)
                      end
                   end
                end
@@ -225,7 +254,7 @@ VisualsTab:CreateToggle({
       task.spawn(function()
          if xrayActive then
             pcall(function()
-               for _, v in pairs(workspace:GetDescendants()) do
+               for _, v in pairs(Workspace:GetDescendants()) do
                   if v:IsA("BasePart") and not v.Parent:FindFirstChild("Humanoid") then
                      originalTransparencies[v] = v.Transparency
                      v.Transparency = 0.5
@@ -259,7 +288,7 @@ ItemsTab:CreateToggle({
             pcall(function()
                local character = LocalPlayer.Character
                if character and character:FindFirstChild("HumanoidRootPart") then
-                  for _, v in pairs(workspace:GetDescendants()) do
+                  for _, v in pairs(Workspace:GetDescendants()) do
                      if v:IsA("Tool") and v:FindFirstChild("Handle") then
                         local characterModel = v:FindFirstAncestorWhichIsA("Model")
                         local belongsToPlayer = false
@@ -333,18 +362,27 @@ ItemsTab:CreateToggle({
          while killAuraActive do
             pcall(function()
                local character = LocalPlayer.Character
-               if character then
-                  local tool = character:FindFirstChildOfClass("Tool")
-                  if tool and character:FindFirstChild("HumanoidRootPart") then
-                     local hrp = character.HumanoidRootPart
-                     for _, player in pairs(Players:GetPlayers()) do
-                        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+               if character and character:FindFirstChild("HumanoidRootPart") then
+                  local hrp = character.HumanoidRootPart
+                  for _, player in pairs(Players:GetPlayers()) do
+                     if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChild("Humanoid") then
+                        if player.Character.Humanoid.Health > 0 then
                            local dist = (hrp.Position - player.Character.HumanoidRootPart.Position).Magnitude
-                           if dist < killAuraDistance then
-                              for _, part in pairs(player.Character:GetDescendants()) do
-                                 if part:IsA("BasePart") then
-                                    firetouchinterest(hrp, part, 0)
-                                    firetouchinterest(hrp, part, 1)
+                           if dist <= killAuraDistance then
+                              local tool = character:FindFirstChildOfClass("Tool")
+                              if tool and tool:FindFirstChild("Handle") then
+                                 for _, part in pairs(player.Character:GetDescendants()) do
+                                    if part:IsA("BasePart") then
+                                       firetouchinterest(tool.Handle, part, 0)
+                                       firetouchinterest(tool.Handle, part, 1)
+                                    end
+                                 end
+                              else
+                                 for _, part in pairs(player.Character:GetDescendants()) do
+                                    if part:IsA("BasePart") then
+                                       firetouchinterest(hrp, part, 0)
+                                       firetouchinterest(hrp, part, 1)
+                                    end
                                  end
                               end
                            end
@@ -353,7 +391,7 @@ ItemsTab:CreateToggle({
                   end
                end
             end)
-            task.wait()
+            task.wait(0.1)
          end
       end)
    end,
@@ -491,7 +529,7 @@ PlayerTab:CreateToggle({
             pcall(function()
                local targetChar = getTargetCharacter()
                if targetChar and targetChar:FindFirstChild("Humanoid") then
-                  workspace.CurrentCamera.CameraSubject = targetChar.Humanoid
+                  Workspace.CurrentCamera.CameraSubject = targetChar.Humanoid
                end
             end)
             task.wait(0.5)
@@ -499,7 +537,7 @@ PlayerTab:CreateToggle({
          pcall(function()
             local character = LocalPlayer.Character
             if character and character:FindFirstChild("Humanoid") then
-               workspace.CurrentCamera.CameraSubject = character.Humanoid
+               Workspace.CurrentCamera.CameraSubject = character.Humanoid
             end
          end)
       end)
@@ -547,7 +585,7 @@ PlayerTab:CreateSlider({
    Flag = "GravitySlider",
    Callback = function(Value)
       pcall(function()
-         workspace.Gravity = Value
+         Workspace.Gravity = Value
       end)
    end,
 })
@@ -677,7 +715,7 @@ TrollTab:CreateToggle({
                if #playersList > 1 then
                   local target = playersList[math.random(1, #playersList)]
                   if target ~= LocalPlayer then
-                     local msg = "@" .. target.Name .. " " .. phrases[math.random(1, #phrases)]
+                     local msg = "@" + target.Name + " " + phrases[math.random(1, #phrases)]
                      if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
                         local channel = TextChatService.TextChannels.RBXGeneral
                         if channel then
