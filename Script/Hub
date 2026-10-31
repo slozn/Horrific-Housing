@@ -2,27 +2,12 @@ if not game:IsLoaded() then
    game.Loaded:Wait()
 end
 
-task.spawn(function()
-   pcall(function()
-      local players = game:GetService("Players")
-      local localPlayer = players.LocalPlayer
-      local virtualUser = game:GetService("VirtualUser")
-      local virtualInput = game:GetService("VirtualInputManager")
-      
-      localPlayer.Idled:Connect(function()
-         virtualUser:CaptureController()
-         virtualUser:ClickButton2(Vector2.new(0, 0))
-      end)
-
-      while task.wait(60) do
-         if game:GetService("UserInputService"):GetFocusedTextBox() == nil then
-            virtualInput:SendKeyEvent(true, Enum.KeyCode.RightControl, false, game)
-            task.wait(0.05)
-            virtualInput:SendKeyEvent(false, Enum.KeyCode.RightControl, false, game)
-         end
-      end
-   end)
-end)
+local GC = getconnections or get_signal_cons
+	if GC then
+		for i,v in pairs(GC(Players.LocalPlayer.Idled)) do
+			if v["Disable"] then
+				v["Disable"](v)
+end
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
