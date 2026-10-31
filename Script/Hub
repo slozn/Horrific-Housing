@@ -1,0 +1,709 @@
+if not game:IsLoaded() then
+   game.Loaded:Wait()
+end
+
+task.spawn(function()
+   pcall(function()
+      local players = game:GetService("Players")
+      local localPlayer = players.LocalPlayer
+      local virtualUser = game:GetService("VirtualUser")
+      local virtualInput = game:GetService("VirtualInputManager")
+      
+      localPlayer.Idled:Connect(function()
+         virtualUser:CaptureController()
+         virtualUser:ClickButton2(Vector2.new(0, 0))
+      end)
+
+      while task.wait(60) do
+         if game:GetService("UserInputService"):GetFocusedTextBox() == nil then
+            virtualInput:SendKeyEvent(true, Enum.KeyCode.RightControl, false, game)
+            task.wait(0.05)
+            virtualInput:SendKeyEvent(false, Enum.KeyCode.RightControl, false, game)
+         end
+      end
+   end)
+end)
+
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "Horrific Housing Hub",
+   LoadingTitle = "Horrific Housing Hub",
+   LoadingSubtitle = "By semihu55",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "HorrificHousingSemi",
+      FileName = "Config"
+   },
+   KeySystem = false,
+   KeySettings = {
+      Title = "Hub Key",
+      Subtitle = "Key System",
+      Note = "No key required",
+      FileName = "HubKey",
+      SaveKey = true,
+      GrabKeyFromSite = false,
+      Key = {"1234"}
+   }
+})
+
+local SurvivalTab = Window:CreateTab("Survival", 4483362458)
+local VisualsTab = Window:CreateTab("Visuals", 4483362458)
+local ItemsTab = Window:CreateTab("Items", 4483362458)
+local PlayerTab = Window:CreateTab("Player", 4483362458)
+local TrollTab = Window:CreateTab("Troll", 4483362458)
+
+local safespotActive = false
+SurvivalTab:CreateToggle({
+   Name = "Safespot",
+   CurrentValue = false,
+   Flag = "SafespotFlag",
+   Callback = function(Value)
+      safespotActive = Value
+      task.spawn(function()
+         while safespotActive do
+            local character = game.Players.LocalPlayer.Character
+            if character and character:FindFirstChild("HumanoidRootPart") then
+               character.HumanoidRootPart.CFrame = CFrame.new(0, 500, 0)
+               character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+            end
+            task.wait()
+         end
+      end)
+   end,
+})
+
+local antiVoidActive = false
+SurvivalTab:CreateToggle({
+   Name = "Anti Void",
+   CurrentValue = false,
+   Flag = "AntiVoidFlag",
+   Callback = function(Value)
+      antiVoidActive = Value
+      task.spawn(function()
+         while antiVoidActive do
+            local character = game.Players.LocalPlayer.Character
+            if character and character:FindFirstChild("HumanoidRootPart") then
+               if character.HumanoidRootPart.Position.Y < -20 then
+                  character.HumanoidRootPart.CFrame = CFrame.new(0, 50, 0)
+               end
+            end
+            task.wait()
+         end
+      end)
+   end,
+})
+
+local antiDeathBlocksActive = false
+SurvivalTab:CreateToggle({
+   Name = "Anti Death Blocks",
+   CurrentValue = false,
+   Flag = "AntiDeathFlag",
+   Callback = function(Value)
+      antiDeathBlocksActive = Value
+      task.spawn(function()
+         while antiDeathBlocksActive do
+            pcall(function()
+               local character = game.Players.LocalPlayer.Character
+               if character then
+                  for _, v in pairs(character:GetDescendants()) do
+                     if v:IsA("TouchTransmitter") then
+                        v:Destroy()
+                     end
+                  end
+               end
+            end)
+            task.wait()
+         end
+      end)
+   end,
+})
+
+local espActive = false
+VisualsTab:CreateToggle({
+   Name = "ESP",
+   CurrentValue = false,
+   Flag = "ESPFlag",
+   Callback = function(Value)
+      espActive = Value
+      task.spawn(function()
+         while espActive do
+            for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+               if player ~= game.Players.LocalPlayer and player.Character then
+                  if not player.Character:FindFirstChild("Highlight") then
+                     local hl = Instance.new("Highlight")
+                     hl.Parent = player.Character
+                     if player.Team then
+                        hl.FillColor = player.Team.TeamColor.Color
+                     else
+                        hl.FillColor = Color3.fromRGB(255, 255, 255)
+                     end
+                     hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+                  else
+                     local hl = player.Character:FindFirstChild("Highlight")
+                     if player.Team then
+                        hl.FillColor = player.Team.TeamColor.Color
+                     else
+                        hl.FillColor = Color3.fromRGB(255, 255, 255)
+                     end
+                  end
+               end
+            end
+            task.wait(0.5)
+         end
+         for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+            if player.Character and player.Character:FindFirstChild("Highlight") then
+               player.Character.Highlight:Destroy()
+            end
+         end
+      end)
+   end,
+})
+
+local fullbrightActive = false
+VisualsTab:CreateToggle({
+   Name = "FullBright",
+   CurrentValue = false,
+   Flag = "BrightFlag",
+   Callback = function(Value)
+      fullbrightActive = Value
+      task.spawn(function()
+         while fullbrightActive do
+            local lighting = game:GetService("Lighting")
+            lighting.Brightness = 2
+            lighting.ClockTime = 14
+            lighting.GlobalShadows = false
+            task.wait(0.5)
+         end
+      end)
+   end,
+})
+
+local xrayActive = false
+local originalTransparencies = {}
+VisualsTab:CreateToggle({
+   Name = "Xray",
+   CurrentValue = false,
+   Flag = "XrayFlag",
+   Callback = function(Value)
+      xrayActive = Value
+      task.spawn(function()
+         if xrayActive then
+            pcall(function()
+               for _, v in pairs(workspace:GetDescendants()) do
+                  if v:IsA("BasePart") and not v.Parent:FindFirstChild("Humanoid") then
+                     originalTransparencies[v] = v.Transparency
+                     v.Transparency = 0.5
+                  end
+               end
+            end)
+         else
+            pcall(function()
+               for v, trans in pairs(originalTransparencies) do
+                  if v and v.Parent then
+                     v.Transparency = trans
+                  end
+               end
+               originalTransparencies = {}
+            end)
+         end
+      end)
+   end,
+})
+
+local autoGrabActive = false
+ItemsTab:CreateToggle({
+   Name = "Auto Grab Items",
+   CurrentValue = false,
+   Flag = "GrabFlag",
+   Callback = function(Value)
+      autoGrabActive = Value
+      task.spawn(function()
+         while autoGrabActive do
+            pcall(function()
+               local character = game.Players.LocalPlayer.Character
+               if character and character:FindFirstChild("HumanoidRootPart") then
+                  for _, v in pairs(workspace:GetDescendants()) do
+                     if v:IsA("Tool") and v:FindFirstChild("Handle") then
+                        v.Handle.CFrame = character.HumanoidRootPart.CFrame
+                     end
+                  end
+               end
+            end)
+            task.wait()
+         end
+      end)
+   end,
+})
+
+local autoSpleefActive = false
+ItemsTab:CreateToggle({
+   Name = "Auto Touch Spleefs",
+   CurrentValue = false,
+   Flag = "SpleefFlag",
+   Callback = function(Value)
+      autoSpleefActive = Value
+      task.spawn(function()
+         while autoSpleefActive do
+            pcall(function()
+               local character = game.Players.LocalPlayer.Character
+               if character and character:FindFirstChild("HumanoidRootPart") then
+                  for _, v in pairs(workspace:GetDescendants()) do
+                     if v:IsA("BasePart") and v.Name:lower():find("spleef") then
+                        firetouchinterest(character.HumanoidRootPart, v, 0)
+                        firetouchinterest(character.HumanoidRootPart, v, 1)
+                     end
+                  end
+               end
+            end)
+            task.wait()
+         end
+      end)
+   end,
+})
+
+local useAllItemsActive = false
+ItemsTab:CreateToggle({
+   Name = "Use All Items",
+   CurrentValue = false,
+   Flag = "UseAllItemsFlag",
+   Callback = function(Value)
+      useAllItemsActive = Value
+      task.spawn(function()
+         while useAllItemsActive do
+            pcall(function()
+               local player = game.Players.LocalPlayer
+               local character = player.Character
+               local backpack = player.Backpack
+               if character and backpack then
+                  for _, tool in pairs(backpack:GetChildren()) do
+                     if tool:IsA("Tool") then
+                        tool.Parent = character
+                        tool:Activate()
+                     end
+                  end
+                  for _, tool in pairs(character:GetChildren()) do
+                     if tool:IsA("Tool") then
+                        tool:Activate()
+                     end
+                  end
+               end
+            end)
+            task.wait(0.1)
+         end
+      end)
+   end,
+})
+
+local killAuraDistance = 25
+ItemsTab:CreateSlider({
+   Name = "KillAura Distance",
+   Range = {5, 100},
+   Increment = 1,
+   CurrentValue = 25,
+   Flag = "KillAuraDistFlag",
+   Callback = function(Value)
+      killAuraDistance = Value
+   end,
+})
+
+local killAuraActive = false
+ItemsTab:CreateToggle({
+   Name = "KillAura (For Close Combat)",
+   CurrentValue = false,
+   Flag = "KillAuraFlag",
+   Callback = function(Value)
+      killAuraActive = Value
+      task.spawn(function()
+         while killAuraActive do
+            pcall(function()
+               local character = game.Players.LocalPlayer.Character
+               if character then
+                  local tool = character:FindFirstChildOfClass("Tool")
+                  if tool and character:FindFirstChild("HumanoidRootPart") then
+                     local hrp = character.HumanoidRootPart
+                     for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+                        if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                           local dist = (hrp.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                           if dist < killAuraDistance then
+                              for _, part in pairs(player.Character:GetDescendants()) do
+                                 if part:IsA("BasePart") then
+                                    firetouchinterest(hrp, part, 0)
+                                    firetouchinterest(hrp, part, 1)
+                                 end
+                              end
+                           end
+                        end
+                     end
+                  end
+               end
+            end)
+            task.wait()
+         end
+      end)
+   end,
+})
+
+local informInvActive = false
+ItemsTab:CreateToggle({
+   Name = "Inform About Player Inventories",
+   CurrentValue = false,
+   Flag = "InvFlag",
+   Callback = function(Value)
+      informInvActive = Value
+      task.spawn(function()
+         local connections = {}
+         if informInvActive then
+            for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+               if player ~= game.Players.LocalPlayer then
+                  local function setupContainer(container)
+                     if container then
+                        table.insert(connections, container.ChildAdded:Connect(function(item)
+                           if informInvActive and item:IsA("Tool") then
+                              pcall(function()
+                                 local tools = {}
+                                 if player.Backpack then
+                                    for _, t in pairs(player.Backpack:GetChildren()) do
+                                       if t:IsA("Tool") then
+                                          table.insert(tools, t.Name)
+                                       end
+                                    end
+                                 end
+                                 if player.Character then
+                                    for _, t in pairs(player.Character:GetChildren()) do
+                                       if t:IsA("Tool") then
+                                          table.insert(tools, t.Name)
+                                       end
+                                    end
+                                 end
+                                 Rayfield:Notify({
+                                    Title = player.Name .. " got " .. item.Name,
+                                    Content = table.concat(tools, ", "),
+                                    Duration = 4
+                                 })
+                              end)
+                           end
+                        end))
+                     end
+                  end
+                  if player.Backpack then setupContainer(player.Backpack) end
+                  table.insert(connections, player.CharacterAdded:Connect(function(char)
+                     setupContainer(char)
+                  end))
+                  if player.Character then setupContainer(player.Character) end
+               end
+            end
+         else
+            for _, conn in pairs(connections) do
+               conn:Disconnect()
+            end
+         end
+      end)
+   end,
+})
+
+local targetName = ""
+PlayerTab:CreateInput({
+   Name = "Target Username or DisplayName",
+   PlaceholderText = "Enter name here",
+   RemoveTextAfterFocusLost = false,
+   Flag = "TargetInput",
+   Callback = function(Text)
+      targetName = Text
+   end,
+})
+
+local function getTargetCharacter()
+   local localPlayer = game.Players.LocalPlayer
+   for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+      if player ~= localPlayer then
+         if player.Name:lower():sub(1, #targetName) == targetName:lower() or player.DisplayName:lower():sub(1, #targetName) == targetName:lower() then
+            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+               return player.Character
+            end
+         end
+      end
+   end
+   return nil
+end
+
+PlayerTab:CreateButton({
+   Name = "Fling Target Player",
+   Callback = function()
+      pcall(function()
+         local localPlayer = game.Players.LocalPlayer
+         local character = localPlayer.Character
+         if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+         
+         local targetChar = getTargetCharacter()
+         if targetChar and targetChar:FindFirstChild("HumanoidRootPart") then
+            local originalPos = character.HumanoidRootPart.CFrame
+            character.HumanoidRootPart.CFrame = targetChar.HumanoidRootPart.CFrame
+            task.wait(0.1)
+            character.HumanoidRootPart.AssemblyAngularVelocity = Vector3.new(99999, 99999, 99999)
+            task.wait(0.3)
+            character.HumanoidRootPart.CFrame = originalPos
+         end
+      end)
+   end,
+})
+
+PlayerTab:CreateButton({
+   Name = "Teleport to Player",
+   Callback = function()
+      pcall(function()
+         local localPlayer = game.Players.LocalPlayer
+         local character = localPlayer.Character
+         if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+         
+         local targetChar = getTargetCharacter()
+         if targetChar and targetChar:FindFirstChild("HumanoidRootPart") then
+            character.HumanoidRootPart.CFrame = targetChar.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
+         end
+      end)
+   end,
+})
+
+local viewPlayerActive = false
+PlayerTab:CreateToggle({
+   Name = "View Player",
+   CurrentValue = false,
+   Flag = "ViewPlayerFlag",
+   Callback = function(Value)
+      viewPlayerActive = Value
+      task.spawn(function()
+         while viewPlayerActive do
+            pcall(function()
+               local targetChar = getTargetCharacter()
+               if targetChar and targetChar:FindFirstChild("Humanoid") then
+                  workspace.CurrentCamera.CameraSubject = targetChar.Humanoid
+               end
+            end)
+            task.wait(0.5)
+         end
+         pcall(function()
+            local character = game.Players.LocalPlayer.Character
+            if character and character:FindFirstChild("Humanoid") then
+               workspace.CurrentCamera.CameraSubject = character.Humanoid
+            end
+         end)
+      end)
+   end,
+})
+
+local flyActive = false
+PlayerTab:CreateToggle({
+   Name = "Fly",
+   CurrentValue = false,
+   Flag = "FlyFlag",
+   Callback = function(Value)
+      flyActive = Value
+      task.spawn(function()
+         local uis = game:GetService("UserInputService")
+         local rs = game:GetService("RunService")
+         while flyActive do
+            pcall(function()
+               local character = game.Players.LocalPlayer.Character
+               if character and character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("Humanoid") then
+                  character.Humanoid.PlatformStanding = true
+                  local hrp = character.HumanoidRootPart
+                  local cam = workspace.CurrentCamera
+                  local velocity = Vector3.new(0, 0, 0)
+                  if uis:IsKeyDown(Enum.KeyCode.W) then
+                     velocity = velocity + cam.CFrame.LookVector
+                  end
+                  if uis:IsKeyDown(Enum.KeyCode.S) then
+                     velocity = velocity - cam.CFrame.LookVector
+                  end
+                  if uis:IsKeyDown(Enum.KeyCode.A) then
+                     velocity = velocity - cam.CFrame.RightVector
+                  end
+                  if uis:IsKeyDown(Enum.KeyCode.D) then
+                     velocity = velocity + cam.CFrame.RightVector
+                  end
+                  hrp.AssemblyLinearVelocity = velocity * 50
+               end
+            end)
+            rs.RenderStepped:Wait()
+         end
+         pcall(function()
+            local character = game.Players.LocalPlayer.Character
+            if character and character:FindFirstChild("Humanoid") then
+               character.Humanoid.PlatformStanding = false
+               if character:FindFirstChild("HumanoidRootPart") then
+                  character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+               end
+            end
+         end)
+      end)
+   end,
+})
+
+PlayerTab:CreateSlider({
+   Name = "WalkSpeed",
+   Range = {16, 200},
+   Increment = 1,
+   CurrentValue = 16,
+   Flag = "WalkSpeedSlider",
+   Callback = function(Value)
+      pcall(function()
+         local character = game.Players.LocalPlayer.Character
+         if character and character:FindFirstChild("Humanoid") then
+            character.Humanoid.WalkSpeed = Value
+         end
+      end)
+   end,
+})
+
+PlayerTab:CreateSlider({
+   Name = "JumpPower",
+   Range = {50, 300},
+   Increment = 1,
+   CurrentValue = 50,
+   Flag = "JumpPowerSlider",
+   Callback = function(Value)
+      pcall(function()
+         local character = game.Players.LocalPlayer.Character
+         if character and character:FindFirstChild("Humanoid") then
+            character.Humanoid.UseJumpPower = true
+            character.Humanoid.JumpPower = Value
+         end
+      end)
+   end,
+})
+
+PlayerTab:CreateSlider({
+   Name = "Gravity",
+   Range = {0, 196},
+   Increment = 1,
+   CurrentValue = 196,
+   Flag = "GravitySlider",
+   Callback = function(Value)
+      pcall(function()
+         workspace.Gravity = Value
+      end)
+   end,
+})
+
+PlayerTab:CreateSlider({
+   Name = "HipHeight",
+   Range = {0, 10},
+   Increment = 0.1,
+   CurrentValue = 2,
+   Flag = "HipHeightSlider",
+   Callback = function(Value)
+      pcall(function()
+         local character = game.Players.LocalPlayer.Character
+         if character and character:FindFirstChild("Humanoid") then
+            character.Humanoid.HipHeight = Value
+         end
+      end)
+   end,
+})
+
+local noclipActive = false
+PlayerTab:CreateToggle({
+   Name = "Noclip",
+   CurrentValue = false,
+   Flag = "NoclipFlag",
+   Callback = function(Value)
+      noclipActive = Value
+      task.spawn(function()
+         local runService = game:GetService("RunService")
+         while noclipActive do
+            pcall(function()
+               local character = game.Players.LocalPlayer.Character
+               if character then
+                  for _, part in pairs(character:GetDescendants()) do
+                     if part:IsA("BasePart") then
+                        part.CanCollide = false
+                     end
+                  end
+               end
+            end)
+            runService.Stepped:Wait()
+         end
+      end)
+   end,
+})
+
+PlayerTab:CreateButton({
+   Name = "Reset Character",
+   Callback = function()
+      pcall(function()
+         local character = game.Players.LocalPlayer.Character
+         if character and character:FindFirstChild("Humanoid") then
+            character.Humanoid.Health = 0
+         end
+      end)
+   end,
+})
+
+PlayerTab:CreateButton({
+   Name = "Lay",
+   Callback = function()
+      pcall(function()
+         local character = game.Players.LocalPlayer.Character
+         if character and character:FindFirstChild("Humanoid") then
+            character.Humanoid.PlatformStanding = true
+         end
+      end)
+   end,
+})
+
+local mockPlayersActive = false
+TrollTab:CreateToggle({
+   Name = "Mock Players",
+   CurrentValue = false,
+   Flag = "MockFlag",
+   Callback = function(Value)
+      mockPlayersActive = Value
+      task.spawn(function()
+         local phrases = {
+            "you play like a literal NPC",
+            "bro is actually allergic to winning",
+            "even a blindfolded noob plays better than you",
+            "uninstall the game, you are embarrassing yourself",
+            "go back to the tutorial level",
+            "imagine dying to that, couldn't be me",
+            "you are literally carrying the opposing team stats",
+            "touch some grass and come back",
+            "are you playing with your feet",
+            "absolute zero IQ gameplay right there",
+            "bro got zero survival instincts",
+            "did you buy your account from a thrift store",
+            "even lag has better reflexes than you",
+            "you are a professional failure",
+            "im convinced your monitor is turned off",
+            "what is that positioning, pure comedy",
+            "bro is speedrunning getting eliminated",
+            "zero mechanical skill detected",
+            "you make a brick wall look smart",
+            "absolute clown moment"
+         }
+         while mockPlayersActive do
+            pcall(function()
+               local players = game:GetService("Players"):GetPlayers()
+               if #players > 1 then
+                  local target = players[math.random(1, #players)]
+                  if target ~= game.Players.LocalPlayer then
+                     local msg = "@" .. target.Name .. " " .. phrases[math.random(1, #phrases)]
+                     local textChatService = game:GetService("TextChatService")
+                     if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+                        local channel = textChatService.TextChannels.RBXGeneral
+                        if channel then
+                           channel:SendAsync(msg)
+                        end
+                     else
+                        game:GetService("ReplicatedStorage"):WaitForChild("DefaultChatSystemChatEvents"):WaitForChild("SayMessageRequest"):FireServer(msg, "All")
+                     end
+                  end
+               end
+            end)
+            task.wait(7)
+         end
+      end)
+   end,
+})
+
+Rayfield:LoadConfiguration()
