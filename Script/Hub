@@ -54,22 +54,35 @@ local PlayerTab = Window:CreateTab("Player", 4483362458)
 local TrollTab = Window:CreateTab("Troll", 4483362458)
 
 local safespotActive = false
+local safespotOriginalPos = nil
 SurvivalTab:CreateToggle({
    Name = "Safespot",
    CurrentValue = false,
    Flag = "SafespotFlag",
    Callback = function(Value)
       safespotActive = Value
-      task.spawn(function()
-         while safespotActive do
-            local character = game.Players.LocalPlayer.Character
-            if character and character:FindFirstChild("HumanoidRootPart") then
-               character.HumanoidRootPart.CFrame = CFrame.new(0, 500, 0)
-               character.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-            end
-            task.wait()
+      local character = game.Players.LocalPlayer.Character
+      if safespotActive then
+         if character and character:FindFirstChild("HumanoidRootPart") then
+            safespotOriginalPos = character.HumanoidRootPart.CFrame
          end
-      end)
+         task.spawn(function()
+            while safespotActive do
+               local char = game.Players.LocalPlayer.Character
+               if char and char:FindFirstChild("HumanoidRootPart") then
+                  char.HumanoidRootPart.CFrame = CFrame.new(0, 500, 0)
+                  char.HumanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+               end
+               task.wait()
+            end
+         end)
+      else
+         task.spawn(function()
+            if safespotOriginalPos and character and character:FindFirstChild("HumanoidRootPart") then
+               character.HumanoidRootPart.CFrame = safespotOriginalPos
+            end
+         end)
+      end
    end,
 })
 
@@ -161,21 +174,33 @@ VisualsTab:CreateToggle({
 })
 
 local fullbrightActive = false
+local lighting = game:GetService("Lighting")
+local origBrightness = lighting.Brightness
+local origClockTime = lighting.ClockTime
+local origShadows = lighting.GlobalShadows
 VisualsTab:CreateToggle({
    Name = "FullBright",
    CurrentValue = false,
    Flag = "BrightFlag",
    Callback = function(Value)
       fullbrightActive = Value
-      task.spawn(function()
-         while fullbrightActive do
-            local lighting = game:GetService("Lighting")
-            lighting.Brightness = 2
-            lighting.ClockTime = 14
-            lighting.GlobalShadows = false
-            task.wait(0.5)
-         end
-      end)
+      if fullbrightActive then
+         origBrightness = lighting.Brightness
+         origClockTime = lighting.ClockTime
+         origShadows = lighting.GlobalShadows
+         task.spawn(function()
+            while fullbrightActive do
+               lighting.Brightness = 2
+               lighting.ClockTime = 14
+               lighting.GlobalShadows = false
+               task.wait(0.5)
+            end
+         end)
+      else
+         lighting.Brightness = origBrightness
+         lighting.ClockTime = origClockTime
+         lighting.GlobalShadows = origShadows
+      end
    end,
 })
 
@@ -262,34 +287,25 @@ ItemsTab:CreateToggle({
    end,
 })
 
-local useAllItemsActive = false
-ItemsTab:CreateToggle({
+ItemsTab:CreateButton({
    Name = "Use All Items",
-   CurrentValue = false,
-   Flag = "UseAllItemsFlag",
-   Callback = function(Value)
-      useAllItemsActive = Value
-      task.spawn(function()
-         while useAllItemsActive do
-            pcall(function()
-               local player = game.Players.LocalPlayer
-               local character = player.Character
-               local backpack = player.Backpack
-               if character and backpack then
-                  for _, tool in pairs(backpack:GetChildren()) do
-                     if tool:IsA("Tool") then
-                        tool.Parent = character
-                        tool:Activate()
-                     end
-                  end
-                  for _, tool in pairs(character:GetChildren()) do
-                     if tool:IsA("Tool") then
-                        tool:Activate()
-                     end
-                  end
+   Callback = function()
+      pcall(function()
+         local player = game.Players.LocalPlayer
+         local character = player.Character
+         local backpack = player.Backpack
+         if character and backpack then
+            for _, tool in pairs(backpack:GetChildren()) do
+               if tool:IsA("Tool") then
+                  tool.Parent = character
+                  tool:Activate()
                end
-            end)
-            task.wait(0.1)
+            end
+            for _, tool in pairs(character:GetChildren()) do
+               if tool:IsA("Tool") then
+                  tool:Activate()
+               end
+            end
          end
       end)
    end,
@@ -499,8 +515,8 @@ PlayerTab:CreateToggle({
    Callback = function(Value)
       flyActive = Value
       task.spawn(function()
+         local runService = game:GetService("RunService")
          local uis = game:GetService("UserInputService")
-         local rs = game:GetService("RunService")
          while flyActive do
             pcall(function()
                local character = game.Players.LocalPlayer.Character
@@ -508,23 +524,27 @@ PlayerTab:CreateToggle({
                   character.Humanoid.PlatformStanding = true
                   local hrp = character.HumanoidRootPart
                   local cam = workspace.CurrentCamera
-                  local velocity = Vector3.new(0, 0, 0)
+                  local moveDir = Vector3.new(0, 0, 0)
                   if uis:IsKeyDown(Enum.KeyCode.W) then
-                     velocity = velocity + cam.CFrame.LookVector
+                     moveDir = moveDir + cam.CFrame.LookVector
                   end
                   if uis:IsKeyDown(Enum.KeyCode.S) then
-                     velocity = velocity - cam.CFrame.LookVector
+                     moveDir = moveDir - cam.CFrame.LookVector
                   end
                   if uis:IsKeyDown(Enum.KeyCode.A) then
-                     velocity = velocity - cam.CFrame.RightVector
+                     moveDir = moveDir - cam.CFrame.RightVector
                   end
                   if uis:IsKeyDown(Enum.KeyCode.D) then
-                     velocity = velocity + cam.CFrame.RightVector
+                     moveDir = moveDir + cam.CFrame.RightVector
                   end
-                  hrp.AssemblyLinearVelocity = velocity * 50
+                  if moveDir.Magnitude > 0 then
+                     hrp.AssemblyLinearVelocity = moveDir.Unit * 60 + Vector3.new(0, 2, 0)
+                  else
+                     hrp.AssemblyLinearVelocity = Vector3.new(0, 2, 0)
+                  end
                end
             end)
-            rs.RenderStepped:Wait()
+            runService.RenderStepped:Wait()
          end
          pcall(function()
             local character = game.Players.LocalPlayer.Character
@@ -601,6 +621,27 @@ PlayerTab:CreateSlider({
    end,
 })
 
+local infJumpActive = false
+game:GetService("UserInputService").JumpRequest:Connect(function()
+   if infJumpActive then
+      pcall(function()
+         local character = game.Players.LocalPlayer.Character
+         if character and character:FindFirstChildOfClass("Humanoid") then
+            character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+         end
+      end)
+   end
+end)
+
+PlayerTab:CreateToggle({
+   Name = "Infinite Jump",
+   CurrentValue = false,
+   Flag = "InfJumpFlag",
+   Callback = function(Value)
+      infJumpActive = Value
+   end,
+})
+
 local noclipActive = false
 PlayerTab:CreateToggle({
    Name = "Noclip",
@@ -665,8 +706,6 @@ TrollTab:CreateToggle({
             "even a blindfolded noob plays better than you",
             "uninstall the game, you are embarrassing yourself",
             "go back to the tutorial level",
-            "imagine dying to that, couldn't be me",
-            "you are literally carrying the opposing team stats",
             "touch some grass and come back",
             "are you playing with your feet",
             "absolute zero IQ gameplay right there",
@@ -679,7 +718,9 @@ TrollTab:CreateToggle({
             "bro is speedrunning getting eliminated",
             "zero mechanical skill detected",
             "you make a brick wall look smart",
-            "absolute clown moment"
+            "absolute clown moment",
+            "your gaming chair needs an upgrade",
+            "skills are currently loading, please wait"
          }
          while mockPlayersActive do
             pcall(function()
