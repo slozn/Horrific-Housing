@@ -87,6 +87,7 @@ SurvivalTab:CreateToggle({
 })
 
 local antiVoidActive = false
+local lastSafePos = nil
 SurvivalTab:CreateToggle({
    Name = "Anti Void",
    CurrentValue = false,
@@ -97,8 +98,16 @@ SurvivalTab:CreateToggle({
          while antiVoidActive do
             local character = game.Players.LocalPlayer.Character
             if character and character:FindFirstChild("HumanoidRootPart") then
-               if character.HumanoidRootPart.Position.Y < -20 then
-                  character.HumanoidRootPart.CFrame = CFrame.new(0, 50, 0)
+               local hrp = character.HumanoidRootPart
+               if hrp.Position.Y > 0 then
+                  lastSafePos = hrp.CFrame
+               elseif hrp.Position.Y < -20 then
+                  if lastSafePos then
+                     hrp.CFrame = lastSafePos
+                     hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                  else
+                     hrp.CFrame = CFrame.new(0, 50, 0)
+                  end
                end
             end
             task.wait()
