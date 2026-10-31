@@ -2,6 +2,10 @@ if not game:IsLoaded() then
    game.Loaded:Wait()
 end
 
+if game.PlaceId ~= 283595679 then
+   return
+end
+
 task.spawn(function()
    pcall(function()
       local players = game:GetService("Players")
