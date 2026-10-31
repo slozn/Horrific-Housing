@@ -720,5 +720,3 @@ TrollTab:CreateToggle({
       end)
    end,
 })
-
-Rayfield:LoadConfiguration()
